@@ -6,6 +6,7 @@ pluginManagement {
 }
 apply from: "$rootDir/gradle/build-cache-settings.gradle"
 
+include 'spring-ahao-example'
 include "spring-aop"
 include "spring-aspects"
 include "spring-beans"
@@ -36,3 +37,4 @@ rootProject.name = "spring"
 rootProject.children.each {project ->
 	project.buildFileName = "${project.name}.gradle"
 }
+
