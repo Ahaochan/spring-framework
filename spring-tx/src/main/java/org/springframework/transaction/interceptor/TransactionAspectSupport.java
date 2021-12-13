@@ -576,6 +576,7 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 		TransactionStatus status = null;
 		if (txAttr != null) {
 			if (tm != null) {
+				// 通过PlatformTransactionManager事务管理器创建一个事务
 				status = tm.getTransaction(txAttr);
 			}
 			else {
