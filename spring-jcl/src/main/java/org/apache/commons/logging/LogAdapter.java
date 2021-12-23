@@ -48,7 +48,7 @@ final class LogAdapter {
 
 	private static final LogApi logApi;
 
-	// logApi在类加载的时候进行初始化，默认是LogApi.JUL
+	// logApi在类加载的时候进行初始化
 	static {
 		// 判断是否存在log4j2的相关类
 		if (isPresent(LOG4J_SPI)) {
@@ -96,8 +96,10 @@ final class LogAdapter {
 	 */
 	public static Log createLog(String name) {
 		// 判断logApi类型, 尽量添加log4j-to-slf4j桥接器, 避免使用log4j2
+		// spring默认优先使用log4j2, spring boot默认优先使用slf4j
 		switch (logApi) {
 			case LOG4J:
+				// 这里就是直接new Log4jLog(name)
 				return Log4jAdapter.createLog(name);
 			case SLF4J_LAL:
 				return Slf4jAdapter.createLocationAwareLog(name);
@@ -110,12 +112,14 @@ final class LogAdapter {
 				// case of Log4j or SLF4J, we are trying to prevent early initialization
 				// of the JavaUtilLog adapter - e.g. by a JVM in debug mode - when eagerly
 				// trying to parse the bytecode for all the cases of this switch clause.
+				// 这里就是直接new JavaUtilLog(name)
 				return JavaUtilAdapter.createLog(name);
 		}
 	}
 
 	private static boolean isPresent(String className) {
 		try {
+			// 判断类是否存在当前类加载器中
 			Class.forName(className, false, LogAdapter.class.getClassLoader());
 			return true;
 		}
