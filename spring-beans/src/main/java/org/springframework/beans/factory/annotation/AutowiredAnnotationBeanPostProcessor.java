@@ -626,7 +626,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
-			// 这里是@Autowired注解修饰的字段
+			// 这里是@Autowired注解修饰的field字段
 			Field field = (Field) this.member;
 			Object value;
 			// 一开始是没有缓存的, 直接跳过
@@ -640,9 +640,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 			}
 			else {
-				// 一开始是没有缓存的, 直接走这里, 获取值, 这里的bean是字段所属的类对象
+				// 一开始是没有缓存的, 直接走这里, 获取值, 这里的bean是字段所属的类的Bean对象
 				value = resolveFieldValue(field, bean, beanName);
 			}
+			// 获取到field的值后, 通过反射, 注入到这个对象里
 			if (value != null) {
 				ReflectionUtils.makeAccessible(field);
 				field.set(bean, value);
