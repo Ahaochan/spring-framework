@@ -394,8 +394,12 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+		// 这里的bean就是要注入的field所在的类的对象, beanName就是这个对象在Spring容器的名称
+		// PropertyValues默认没有东西
 		InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
 		try {
+			// InjectionMetadata内标记是哪个bean的哪个字段或者方法要做初始化
+			// 在inject方法内执行初始化操作
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (BeanCreationException ex) {

@@ -116,6 +116,9 @@ public class InjectionMetadata {
 				(checkedElements != null ? checkedElements : this.injectedElements);
 		if (!elementsToIterate.isEmpty()) {
 			for (InjectedElement element : elementsToIterate) {
+				// 遍历每一个field字段或者method方法, 进行注入
+				// 如果@Autowired注解是修饰在field 字段上, 这里的element就是AutowiredFieldElement 的实例对象
+				// 如果@Autowired注解是修饰在method方法上, 这里的element就是AutowiredMethodElement的实例对象
 				element.inject(target, beanName, pvs);
 			}
 		}
