@@ -609,6 +609,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 	/**
 	 * Class representing injection information about an annotated field.
 	 */
+	// 如果@Autowired注解是加载字段上, 就走这个类的inject方法
 	private class AutowiredFieldElement extends InjectionMetadata.InjectedElement {
 
 		private final boolean required;
@@ -625,8 +626,10 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		@Override
 		protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+			// 这里是@Autowired注解修饰的字段
 			Field field = (Field) this.member;
 			Object value;
+			// 一开始是没有缓存的, 直接跳过
 			if (this.cached) {
 				try {
 					value = resolvedCachedArgument(beanName, this.cachedFieldValue);
@@ -637,6 +640,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 			}
 			else {
+				// 一开始是没有缓存的, 直接走这里, 获取值, 这里的bean是字段所属的类对象
 				value = resolveFieldValue(field, bean, beanName);
 			}
 			if (value != null) {
@@ -647,6 +651,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 		@Nullable
 		private Object resolveFieldValue(Field field, Object bean, @Nullable String beanName) {
+			// DependencyDescriptor, 依赖描述符, 封装这个field字段的所有信息
 			DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
 			desc.setContainingClass(bean.getClass());
 			Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
@@ -654,12 +659,14 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			TypeConverter typeConverter = beanFactory.getTypeConverter();
 			Object value;
 			try {
+				// 从spring容器里去寻找这个依赖
 				value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
 			}
 			catch (BeansException ex) {
 				throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
 			}
 			synchronized (this) {
+				// 如果没在缓存里面, 就把value加入缓存
 				if (!this.cached) {
 					Object cachedFieldValue = null;
 					if (value != null || this.required) {
