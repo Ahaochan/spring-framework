@@ -9,7 +9,7 @@ apply from: "$rootDir/gradle/build-cache-settings.gradle"
 
 include 'spring-ahao-example'
 include "spring-aop"
-include "spring-aspects"
+//include "spring-aspects"
 include "spring-beans"
 include "spring-context"
 include "spring-context-indexer"

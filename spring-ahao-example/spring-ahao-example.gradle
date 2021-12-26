@@ -5,7 +5,3 @@ dependencies {
     optional(project(":spring-beans"))
     optional(project(":spring-context"))
 }
-
-test {
-    useJUnitPlatform()
-}
