@@ -313,8 +313,12 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 	@Override
 	public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) {
+		// 这里的bean就是要注入的field所在的类的对象, beanName就是这个对象在Spring容器的名称
+		// PropertyValues默认没有东西
 		InjectionMetadata metadata = findResourceMetadata(beanName, bean.getClass(), pvs);
 		try {
+			// InjectionMetadata内标记是哪个bean的哪个字段或者方法要做初始化
+			// 在inject方法内执行初始化操作
 			metadata.inject(bean, beanName, pvs);
 		}
 		catch (Throwable ex) {
@@ -344,6 +348,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
+					// 收集这个Class对象中被@Resource注解修饰了的field或者method
 					metadata = buildResourceMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -363,6 +368,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
 
+			// 获取这个类里, 使用@Resource注解修饰的field字段
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				if (webServiceRefClass != null && field.isAnnotationPresent(webServiceRefClass)) {
 					if (Modifier.isStatic(field.getModifiers())) {
@@ -380,12 +386,14 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 					if (Modifier.isStatic(field.getModifiers())) {
 						throw new IllegalStateException("@Resource annotation is not supported on static fields");
 					}
+					// 获取这个类里, 使用@Resource注解修饰的field字段
 					if (!this.ignoredResourceTypes.contains(field.getType().getName())) {
 						currElements.add(new ResourceElement(field, field, null));
 					}
 				}
 			});
 
+			// 获取这个类里, 使用@Resource注解修饰的method方法
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
@@ -420,6 +428,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 						if (paramTypes.length != 1) {
 							throw new IllegalStateException("@Resource annotation requires a single-arg method: " + method);
 						}
+						// 获取这个类里, 使用@Resource注解修饰的method方法
 						if (!this.ignoredResourceTypes.contains(paramTypes[0].getName())) {
 							PropertyDescriptor pd = BeanUtils.findPropertyForMethod(bridgedMethod, clazz);
 							currElements.add(new ResourceElement(method, bridgedMethod, pd));
@@ -428,11 +437,14 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 				}
 			});
 
+			// 父类的field字段或者method方法要放在最前面
 			elements.addAll(0, currElements);
+			// 往上找父类, 直到父类为Object为止
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);
 
+		// 将收集到的InjectedElement放入InjectionMetadata的injectedElements字段中
 		return InjectionMetadata.forElements(elements, clazz);
 	}
 
@@ -514,9 +526,13 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		Set<String> autowiredBeanNames;
 		String name = element.name;
 
+		// AnnotationConfigApplicationContext默认使用DefaultListableBeanFactory, 也就是这个factory
 		if (factory instanceof AutowireCapableBeanFactory) {
+			// DefaultListableBeanFactory默认实现了DefaultListableBeanFactory这个接口
 			AutowireCapableBeanFactory beanFactory = (AutowireCapableBeanFactory) factory;
 			DependencyDescriptor descriptor = element.getDependencyDescriptor();
+			// isDefaultName判断@Resource的name有没有值, 没有就是true
+			// 并且BeanFactory里没有这个Bean, 说明没有初始化过, 就进行初始化
 			if (this.fallbackToDefaultTypeMatch && element.isDefaultName && !factory.containsBean(name)) {
 				autowiredBeanNames = new LinkedHashSet<>();
 				resource = beanFactory.resolveDependency(descriptor, requestingBeanName, autowiredBeanNames, null);
@@ -611,6 +627,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 * Class representing injection information about an annotated field
 	 * or setter method, supporting the @Resource annotation.
 	 */
+	// 使用的是父类的父类InjectedElement的inject方法
 	private class ResourceElement extends LookupElement {
 
 		private final boolean lazyLookup;
@@ -647,7 +664,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 		@Override
 		protected Object getResourceToInject(Object target, @Nullable String requestingBeanName) {
+			// 如果添加了@Lazy注解, 就走懒加载, 否则就直接根据名称查找依赖
 			return (this.lazyLookup ? buildLazyResourceProxy(this, requestingBeanName) :
+					// 根据名称查找依赖项, 注入到field字段或者method方法中
 					getResource(this, requestingBeanName));
 		}
 	}

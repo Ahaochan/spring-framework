@@ -224,10 +224,11 @@ public class InjectionMetadata {
 		 */
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {
-
+			// 这里的target就是bean, requestingBeanName是beanName
 			if (this.isField) {
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);
+				// 根据requestingBeanName查找合适的bean, 然后通过反射注入到这个field字段中
 				field.set(target, getResourceToInject(target, requestingBeanName));
 			}
 			else {
@@ -237,6 +238,7 @@ public class InjectionMetadata {
 				try {
 					Method method = (Method) this.member;
 					ReflectionUtils.makeAccessible(method);
+					// 根据requestingBeanName查找合适的bean, 然后通过反射注入到这个method方法的形参中
 					method.invoke(target, getResourceToInject(target, requestingBeanName));
 				}
 				catch (InvocationTargetException ex) {

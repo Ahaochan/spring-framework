@@ -405,10 +405,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	@Override
 	public boolean containsBean(String name) {
 		String beanName = transformedBeanName(name);
+		// 如果已经初始化好了这个bean, 那么在singletonObjects这个Map就可以根据beanName找到这个初始化好的bean
+		// 如果还没初始化好, 就尝试在beanDefinitionMap这个Map里面找
 		if (containsSingleton(beanName) || containsBeanDefinition(beanName)) {
 			return (!BeanFactoryUtils.isFactoryDereference(name) || isFactoryBean(name));
 		}
 		// Not found -> check parent.
+		// 如果当前的beanFactory找不到这个Bean就去parent再找一遍, 走的还是这个方法
 		BeanFactory parentBeanFactory = getParentBeanFactory();
 		return (parentBeanFactory != null && parentBeanFactory.containsBean(originalBeanName(name)));
 	}
