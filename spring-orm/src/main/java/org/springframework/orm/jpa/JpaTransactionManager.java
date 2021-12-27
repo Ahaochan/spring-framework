@@ -375,6 +375,7 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 
 	@Override
 	protected void doBegin(Object transaction, TransactionDefinition definition) {
+		// 上面doGetTransaction方法拿到的transaction
 		JpaTransactionObject txObject = (JpaTransactionObject) transaction;
 
 		if (txObject.hasConnectionHolder() && !txObject.getConnectionHolder().isSynchronizedWithTransaction()) {
@@ -399,6 +400,7 @@ public class JpaTransactionManager extends AbstractPlatformTransactionManager
 
 			// Delegate to JpaDialect for actual transaction begin.
 			int timeoutToUse = determineTimeout(definition);
+			// 开启一个事务
 			Object transactionData = getJpaDialect().beginTransaction(em,
 					new JpaTransactionDefinition(definition, timeoutToUse, txObject.isNewEntityManagerHolder()));
 			txObject.setTransactionData(transactionData);

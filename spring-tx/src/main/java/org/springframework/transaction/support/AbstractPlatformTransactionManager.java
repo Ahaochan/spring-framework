@@ -399,7 +399,7 @@ public abstract class AbstractPlatformTransactionManager implements PlatformTran
 		boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
 		DefaultTransactionStatus status = newTransactionStatus(
 				definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
-		// 真正开启一个事务, 调用Connection.setAutoCommit(false)
+		// 真正开启一个事务, 最底层会去调用Connection.setAutoCommit(false)
 		doBegin(transaction, definition);
 		prepareSynchronization(status, definition);
 		return status;

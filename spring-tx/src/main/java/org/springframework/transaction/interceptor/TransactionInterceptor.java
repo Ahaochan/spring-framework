@@ -72,7 +72,9 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 	 * @see #setTransactionAttributeSource
 	 */
 	public TransactionInterceptor(TransactionManager ptm, TransactionAttributeSource tas) {
+		// 初始化事务管理器
 		setTransactionManager(ptm);
+		// 初始化事务属性数据源, 从中获取传播级别, 隔离级别等属性
 		setTransactionAttributeSource(tas);
 	}
 
@@ -87,6 +89,7 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 	 */
 	@Deprecated
 	public TransactionInterceptor(PlatformTransactionManager ptm, TransactionAttributeSource tas) {
+		// 过时了, 抽象出TransactionManager接口替代
 		setTransactionManager(ptm);
 		setTransactionAttributeSource(tas);
 	}
@@ -108,6 +111,7 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 
 	@Override
 	@Nullable
+	// spring aop的方法拦截器MethodInterceptor
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		// Work out the target class: may be {@code null}.
 		// The TransactionAttributeSource should be passed the target class
@@ -115,6 +119,7 @@ public class TransactionInterceptor extends TransactionAspectSupport implements 
 		Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
 
 		// Adapt to TransactionAspectSupport's invokeWithinTransaction...
+		// 调用父类提供的拦截处理方法, 将代理前的类, 方法, 业务回调方法, 传进去
 		return invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);
 	}
 

@@ -794,6 +794,7 @@ public class JtaTransactionManager extends AbstractPlatformTransactionManager
 	 */
 	@Override
 	protected Object doGetTransaction() {
+		// 获取全局唯一的一个UserTransaction, 这个在JtaTransactionManager创建的时候就初始化好了
 		UserTransaction ut = getUserTransaction();
 		if (ut == null) {
 			throw new CannotCreateTransactionException("No JTA UserTransaction available - " +
@@ -844,6 +845,7 @@ public class JtaTransactionManager extends AbstractPlatformTransactionManager
 
 	@Override
 	protected void doBegin(Object transaction, TransactionDefinition definition) {
+		// 上面doGetTransaction方法拿到的transaction
 		JtaTransactionObject txObject = (JtaTransactionObject) transaction;
 		try {
 			doJtaBegin(txObject, definition);
@@ -883,6 +885,8 @@ public class JtaTransactionManager extends AbstractPlatformTransactionManager
 		applyIsolationLevel(txObject, definition.getIsolationLevel());
 		int timeout = determineTimeout(definition);
 		applyTimeout(txObject, timeout);
+		// 这里会去获取, 并调用全局唯一的UserTransaction的begin方法开启事务
+		// 具体实现交由具体的JTA框架去实现, 比如atomikos的UserTransactionImp
 		txObject.getUserTransaction().begin();
 	}
 
