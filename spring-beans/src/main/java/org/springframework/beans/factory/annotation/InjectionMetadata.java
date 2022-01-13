@@ -119,6 +119,7 @@ public class InjectionMetadata {
 				// 遍历每一个field字段或者method方法, 进行注入
 				// 如果@Autowired注解是修饰在field 字段上, 这里的element就是AutowiredFieldElement 的实例对象
 				// 如果@Autowired注解是修饰在method方法上, 这里的element就是AutowiredMethodElement的实例对象
+				// 如果@Resource注解是修饰在method方法上, 这里的element就是ResourceElement的实例对象
 				element.inject(target, beanName, pvs);
 			}
 		}
@@ -225,10 +226,12 @@ public class InjectionMetadata {
 		protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
 				throws Throwable {
 			// 这里的target就是bean, requestingBeanName是beanName
+			// 这里的requestingBeanName是要注入的field所在的Bean的名称
 			if (this.isField) {
 				Field field = (Field) this.member;
 				ReflectionUtils.makeAccessible(field);
-				// 根据requestingBeanName查找合适的bean, 然后通过反射注入到这个field字段中
+				// 通过依赖描述符PropertyDescriptor和requestingBeanName查找合适的bean
+				// 然后通过反射注入到这个field字段中
 				field.set(target, getResourceToInject(target, requestingBeanName));
 			}
 			else {

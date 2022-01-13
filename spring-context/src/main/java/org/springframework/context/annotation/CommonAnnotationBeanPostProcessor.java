@@ -507,6 +507,9 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			throw new NoSuchBeanDefinitionException(element.lookupType,
 					"No resource factory configured - specify the 'resourceFactory' property");
 		}
+		// 默认走这里, JNDI可以忽略
+		// 这里的requestingBeanName是要注入的field所在的Bean的名称
+		// 从BeanFactory里查找合适的Bean
 		return autowireResource(this.resourceFactory, element, requestingBeanName);
 	}
 
@@ -521,26 +524,31 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	 */
 	protected Object autowireResource(BeanFactory factory, LookupElement element, @Nullable String requestingBeanName)
 			throws NoSuchBeanDefinitionException {
-
+		// 这里的requestingBeanName是要注入的field所在的Bean的名称
 		Object resource;
 		Set<String> autowiredBeanNames;
+		// 这里的name是要注入的field的BeanName
 		String name = element.name;
 
 		// AnnotationConfigApplicationContext默认使用DefaultListableBeanFactory, 也就是这个factory
 		if (factory instanceof AutowireCapableBeanFactory) {
-			// DefaultListableBeanFactory默认实现了DefaultListableBeanFactory这个接口
+			// DefaultListableBeanFactory默认实现了AutowireCapableBeanFactory这个接口
 			AutowireCapableBeanFactory beanFactory = (AutowireCapableBeanFactory) factory;
 			DependencyDescriptor descriptor = element.getDependencyDescriptor();
 			// isDefaultName判断@Resource的name有没有值, 没有就是true
 			// 并且BeanFactory里没有这个Bean, 说明没有初始化过, 就进行初始化
 			if (this.fallbackToDefaultTypeMatch && element.isDefaultName && !factory.containsBean(name)) {
 				autowiredBeanNames = new LinkedHashSet<>();
+				// 降级走@Autowired逻辑
+				// 根据类型初始化这个Bean, 然后根据field的名称去筛选这个Bean
 				resource = beanFactory.resolveDependency(descriptor, requestingBeanName, autowiredBeanNames, null);
 				if (resource == null) {
 					throw new NoSuchBeanDefinitionException(element.getLookupType(), "No resolvable resource object");
 				}
 			}
 			else {
+				// 如果BeanFactory存在有Bean的名称为name, 或者@Resource定义了BeanName
+				// 就根据名称找到这个Bean
 				resource = beanFactory.resolveBeanByName(name, descriptor);
 				autowiredBeanNames = Collections.singleton(name);
 			}
@@ -664,9 +672,10 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 
 		@Override
 		protected Object getResourceToInject(Object target, @Nullable String requestingBeanName) {
-			// 如果添加了@Lazy注解, 就走懒加载, 否则就直接根据名称查找依赖
+			// 这里的requestingBeanName是要注入的field所在的Bean的名称
+			// 如果添加了@Lazy注解, 就走懒加载, 否则就直接根据依赖描述符PropertyDescriptor查找依赖
 			return (this.lazyLookup ? buildLazyResourceProxy(this, requestingBeanName) :
-					// 根据名称查找依赖项, 注入到field字段或者method方法中
+					// 根据依赖描述符PropertyDescriptor查找依赖项, 注入到field字段或者method方法中
 					getResource(this, requestingBeanName));
 		}
 	}
