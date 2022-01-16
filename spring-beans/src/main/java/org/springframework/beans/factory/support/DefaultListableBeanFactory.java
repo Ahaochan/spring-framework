@@ -1371,9 +1371,12 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			if (autowiredBeanNames != null) {
 				autowiredBeanNames.addAll(matchingBeans.keySet());
 			}
+			// 转换为field所需的类型
 			TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
 			Object result = converter.convertIfNecessary(matchingBeans.values(), resolvedArrayType);
+			// 如果是Array就进行排序
 			if (result instanceof Object[]) {
+				// 获取java排序器进行排序, 默认是AnnotationAwareOrderComparator
 				Comparator<Object> comparator = adaptDependencyComparator(matchingBeans);
 				if (comparator != null) {
 					Arrays.sort((Object[]) result, comparator);
@@ -1397,10 +1400,13 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 			if (autowiredBeanNames != null) {
 				autowiredBeanNames.addAll(matchingBeans.keySet());
 			}
+			// 转换为field所需的类型
 			TypeConverter converter = (typeConverter != null ? typeConverter : getTypeConverter());
 			Object result = converter.convertIfNecessary(matchingBeans.values(), type);
+			// 如果是List就进行排序
 			if (result instanceof List) {
 				if (((List<?>) result).size() > 1) {
+					// 获取java排序器进行排序, 默认是AnnotationAwareOrderComparator
 					Comparator<Object> comparator = adaptDependencyComparator(matchingBeans);
 					if (comparator != null) {
 						((List<?>) result).sort(comparator);

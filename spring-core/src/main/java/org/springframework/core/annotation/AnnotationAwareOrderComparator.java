@@ -65,6 +65,7 @@ public class AnnotationAwareOrderComparator extends OrderComparator {
 		if (order != null) {
 			return order;
 		}
+		// 如果没有实现PriorityOrdered接口, 也没有实现Ordered接口, 就用@Order注解来排序
 		return findOrderFromAnnotation(obj);
 	}
 
